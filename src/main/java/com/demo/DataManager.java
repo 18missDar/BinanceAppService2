@@ -33,7 +33,7 @@ public class DataManager {
                     List<OrderBookEvent.PriceQuantityPair> asks = orderBookSnapshot.getAsks();
                     // Prepare the JSON object
                     Gson gson = new Gson();
-                    String json = gson.toJson(new SummaryData(startTime, endTime,
+                    String json = gson.toJson(new SummaryData(startTime, startTime + intervalMinutes,
                             getAsksInterval(asks, maxPriceOrderBuy, numberOfBookParts),
                             getBidsInterval(bids, minPriceOrderBuy, numberOfBookParts),
                             calculateAverage(bids),
