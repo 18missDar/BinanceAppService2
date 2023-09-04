@@ -1,7 +1,6 @@
 package com.demo;
 
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -24,9 +23,6 @@ public class RabbitConfiguration {
     @Value("${spring.rabbitmq.password}")
     private String rabbitPassword;
 
-    @Value("${spring.rabbitmq.queue}")
-    private String queueName;
-
     @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
@@ -42,8 +38,4 @@ public class RabbitConfiguration {
         return new RabbitTemplate(connectionFactory());
     }
 
-    @Bean
-    public Queue queue() {
-        return new Queue(queueName);
-    }
 }

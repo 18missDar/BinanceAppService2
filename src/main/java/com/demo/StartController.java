@@ -13,14 +13,8 @@ public class StartController {
     @Autowired
     private DatabaseConfig databaseConfig;
 
-    private final OrderBookManager orderBookManager;
-
-    private final DataManager dataManager;
-
-    public StartController(OrderBookManager orderBookManager, DataManager dataManager) {
-        this.orderBookManager = orderBookManager;
-        this.dataManager = dataManager;
-    }
+    @Autowired
+    private MessageSenderService messageSenderService;
 
     @GetMapping
     private String start(@RequestParam String eventSymbol,
@@ -29,12 +23,17 @@ public class StartController {
                          @RequestParam int numberOfBookParts,
                          @RequestParam double minPriceOrderBuy,
                          @RequestParam double maxPriceOrderBuy,
-                         @RequestParam int intervalMinutes){
+                         @RequestParam int intervalMinutes,
+                         @RequestParam String name_queue){
         AppConfig appConfig = new AppConfig();
         appConfig.setEventSymbol(eventSymbol);
+        OrderBookManager orderBookManager = new OrderBookManager();
         orderBookManager.startOrderBookManage(databaseConfig, appConfig);
+        TradeEventManager tradeEventManager = new TradeEventManager();
+        tradeEventManager.startTradeEventManager(databaseConfig, appConfig);
         try {
-            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy, maxPriceOrderBuy, intervalMinutes, orderBookManager);
+            DataManager dataManager = new DataManager(messageSenderService);
+            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy, maxPriceOrderBuy, intervalMinutes, name_queue, orderBookManager, tradeEventManager);
             return "All starts successfully";
         }
         catch (Exception e){

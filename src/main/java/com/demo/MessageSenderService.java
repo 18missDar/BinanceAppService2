@@ -10,15 +10,12 @@ public class MessageSenderService {
 
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${spring.rabbitmq.queue}")
-    private String queueName;
-
     @Autowired
     public MessageSenderService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(String queueName, String message) {
         // Send the message to the queue
         rabbitTemplate.convertAndSend(queueName, message);
     }

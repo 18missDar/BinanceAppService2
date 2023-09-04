@@ -257,11 +257,17 @@ public class OrderBookManager {
 
         while (bidsIterator.hasNext()) {
             OrderBookEvent.PriceQuantityPair bid = bidsIterator.next();
+            if (bid == null) {
+                continue; // Skip null bid entries
+            }
             String bidPrice = bid.getPrice();
             String bidQuantity = bid.getQuantity();
 
             while (asksIterator.hasNext()) {
                 OrderBookEvent.PriceQuantityPair ask = asksIterator.next();
+                if (ask == null) {
+                    continue; // Skip null ask entries
+                }
                 String askPrice = ask.getPrice();
                 String askQuantity = ask.getQuantity();
 
@@ -278,12 +284,12 @@ public class OrderBookManager {
                         // Update bid quantity and delete the ask
                         bidQuantityValue -= askQuantityValue;
                         bid.setQuantity(String.valueOf(bidQuantityValue));
-                        asksIterator.remove();
+                        //asksIterator.remove();
                     } else {
                         // Update ask quantity and delete the bid
                         askQuantityValue -= bidQuantityValue;
                         ask.setQuantity(String.valueOf(askQuantityValue));
-                        bidsIterator.remove();
+                        //bidsIterator.remove();
                     }
                 }
             }
@@ -298,13 +304,10 @@ public class OrderBookManager {
     private OrderBookSnapshot accumulateSnapshotActualBids(List<OrderBookEvent> orderBookEvents, OrderBookSnapshot orderBookSnapshot){
         List<OrderBookEvent.PriceQuantityPair> bidsFromShapshot = orderBookSnapshot.getBids();
         List<OrderBookEvent.PriceQuantityPair> asksFromShapshot = orderBookSnapshot.getAsks();
-        int lastIndex = orderBookEvents.size() - 1;
-        //long lastUpdatedId = orderBookEvents.get(lastIndex).getFinalUpdateId();
         bidsFromShapshot.addAll(getAllBids(orderBookEvents));
         asksFromShapshot.addAll(getAllAsks(orderBookEvents));
 
         OrderBookSnapshot result = processBidsAndAsks(bidsFromShapshot, asksFromShapshot);
-        //result.setLastUpdateId(lastUpdatedId);
         return result;
     }
 
