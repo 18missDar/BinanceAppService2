@@ -25,63 +25,62 @@ public class DataManager {
                               int intervalMinutes,
                               String name_queue,
                               OrderBookManager orderBookManager,
-                              TradeEventManager tradeEventManager){
+                              TradeEventManager tradeEventManager,
+                              String requestForBook,
+                              String eventSymbol){
         OrderBookSnapshot orderBookSnapshot = null;
-        try {
-            while (startTime < endTime) {
-                orderBookSnapshot = orderBookManager.collectData(startTime, startTime + intervalMinutes);
+        while (startTime < endTime) {
+            String request = requestForBook + "?currentTime=" + startTime + "&eventSymbol=" + eventSymbol;
+            orderBookSnapshot = orderBookManager.getSnapshot(request);
 
-                double sumQuantityTrue = 0;
-                double sumQuantityFalse = 0;
-                double weightedSumPriceTrue = 0;
-                double weightedSumPriceFalse = 0;
-                double weightedAveragePriceTrue = 0;
-                double weightedAveragePriceFalse = 0;
+            double sumQuantityTrue = 0;
+            double sumQuantityFalse = 0;
+            double weightedSumPriceTrue = 0;
+            double weightedSumPriceFalse = 0;
+            double weightedAveragePriceTrue = 0;
+            double weightedAveragePriceFalse = 0;
 
-                List<TradeEvent> tradeEvents = tradeEventManager.findTradeEventsBetweenTimes(startTime, startTime + intervalMinutes);
-                if (tradeEvents.size() > 0) {
-                    for (TradeEvent tradeEvent : tradeEvents) {
-                        double price = Double.parseDouble(tradeEvent.getPrice());
-                        double quantity = Double.parseDouble(tradeEvent.getQuantity());
-                        boolean isBuyerMarketMaker = tradeEvent.isBuyerMarketMaker();
+            List<TradeEvent> tradeEvents = tradeEventManager.findTradeEventsBetweenTimes(startTime, startTime + intervalMinutes);
+            if (tradeEvents.size() > 0) {
+                for (TradeEvent tradeEvent : tradeEvents) {
+                    double price = Double.parseDouble(tradeEvent.getPrice());
+                    double quantity = Double.parseDouble(tradeEvent.getQuantity());
+                    boolean isBuyerMarketMaker = tradeEvent.isBuyerMarketMaker();
 
-                        if (isBuyerMarketMaker) {
-                            sumQuantityTrue += quantity;
-                            weightedSumPriceTrue += price * quantity; // Calculate weighted sum for true
-                        } else {
-                            sumQuantityFalse += quantity;
-                            weightedSumPriceFalse += price * quantity; // Calculate weighted sum for false
-                        }
+                    if (isBuyerMarketMaker) {
+                        sumQuantityTrue += quantity;
+                        weightedSumPriceTrue += price * quantity; // Calculate weighted sum for true
+                    } else {
+                        sumQuantityFalse += quantity;
+                        weightedSumPriceFalse += price * quantity; // Calculate weighted sum for false
                     }
-
-                    weightedAveragePriceTrue = weightedSumPriceTrue / sumQuantityTrue; // Calculate weighted average for true
-                    weightedAveragePriceFalse = weightedSumPriceFalse / sumQuantityFalse; // Calculate weighted average for false
-                }
-                if (orderBookSnapshot != null) {
-                    List<OrderBookEvent.PriceQuantityPair> bids = orderBookSnapshot.getBids();
-                    List<OrderBookEvent.PriceQuantityPair> asks = orderBookSnapshot.getAsks();
-                    // Prepare the JSON object
-                    Gson gson = new Gson();
-                    String json = gson.toJson(new SummaryData(startTime, startTime + intervalMinutes,
-                            getAsksInterval(asks, minPriceOrderBuy, numberOfBookParts),
-                            getBidsInterval(bids, maxPriceOrderBuy, numberOfBookParts),
-                            weightedAveragePriceFalse,
-                            weightedAveragePriceTrue,
-                            sumQuantityFalse,
-                            sumQuantityTrue,
-                            weightedSumPriceFalse,
-                            weightedSumPriceTrue));
-
-                    System.out.println(json);
-                    messageSenderService.sendMessage(name_queue, json);
                 }
 
-                startTime += intervalMinutes;
+                weightedAveragePriceTrue = weightedSumPriceTrue / sumQuantityTrue; // Calculate weighted average for true
+                weightedAveragePriceFalse = weightedSumPriceFalse / sumQuantityFalse; // Calculate weighted average for false
+            }
+            if (orderBookSnapshot != null) {
+                List<OrderBookEvent.PriceQuantityPair> bids = orderBookSnapshot.getBids();
+                List<OrderBookEvent.PriceQuantityPair> asks = orderBookSnapshot.getAsks();
+                // Prepare the JSON object
+                Gson gson = new Gson();
+                String json = gson.toJson(new SummaryData(startTime, startTime + intervalMinutes,
+                        getAsksInterval(asks, minPriceOrderBuy, numberOfBookParts),
+                        getBidsInterval(bids, maxPriceOrderBuy, numberOfBookParts),
+                        weightedAveragePriceFalse,
+                        weightedAveragePriceTrue,
+                        sumQuantityFalse,
+                        sumQuantityTrue,
+                        weightedSumPriceFalse,
+                        weightedSumPriceTrue));
+
+                System.out.println(json);
+                messageSenderService.sendMessage(name_queue, json);
             }
 
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            startTime += intervalMinutes;
         }
+
     }
 
 

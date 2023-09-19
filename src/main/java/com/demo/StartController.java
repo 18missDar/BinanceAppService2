@@ -24,16 +24,24 @@ public class StartController {
                          @RequestParam double minPriceOrderBuy,
                          @RequestParam double maxPriceOrderBuy,
                          @RequestParam int intervalMinutes,
-                         @RequestParam String name_queue){
+                         @RequestParam String name_queue,
+                         @RequestParam String idService){
         AppConfig appConfig = new AppConfig();
         appConfig.setEventSymbol(eventSymbol);
+        ForServiceDescriptorService forServiceDescriptorService = new ForServiceDescriptorService();
+        forServiceDescriptorService.loadOutputFoldersDescriptors();
+        ServiceDescriptor serviceDescriptor = forServiceDescriptorService.getService(idService);
+        DatabaseConfig databaseConfig = new DatabaseConfig();
+        databaseConfig.setDbUrl(serviceDescriptor.getDatasource_url());
+        databaseConfig.setDbUsername(serviceDescriptor.getDatasource_username());
+        databaseConfig.setDbPassword(serviceDescriptor.getDatasource_password());
+        String requestForBook = "http://" + serviceDescriptor.getHost() + ":" + serviceDescriptor.getPort() + "/getOrderBook";
         OrderBookManager orderBookManager = new OrderBookManager();
-        orderBookManager.startOrderBookManage(databaseConfig, appConfig);
         TradeEventManager tradeEventManager = new TradeEventManager();
         tradeEventManager.startTradeEventManager(databaseConfig, appConfig);
         try {
             DataManager dataManager = new DataManager(messageSenderService);
-            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy, maxPriceOrderBuy, intervalMinutes, name_queue, orderBookManager, tradeEventManager);
+            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy, maxPriceOrderBuy, intervalMinutes, name_queue, orderBookManager, tradeEventManager, requestForBook, eventSymbol);
             return "All starts successfully";
         }
         catch (Exception e){

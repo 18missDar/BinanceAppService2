@@ -1,0 +1,13 @@
+services:
+  - id: service1
+    host: localhost
+    port: 8090
+    datasource_url: jdbc:postgresql://localhost:5432/task
+    datasource_username: postgres
+    datasource_password: postgres
+  - id: service2
+    host: localhost
+    port: 8054
+    datasource_url: jdbc:postgresql://localhost:5432/task
+    datasource_username: postgres
+    datasource_password: password
