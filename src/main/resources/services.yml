@@ -8,6 +8,6 @@ services:
   - id: service2
     host: localhost
     port: 8054
-    datasource_url: jdbc:postgresql://localhost:5432/task
+    datasource_url: jdbc:postgresql://localhost:5432/task1
     datasource_username: postgres
-    datasource_password: password
+    datasource_password: postgres

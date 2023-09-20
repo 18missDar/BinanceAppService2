@@ -35,10 +35,6 @@ public class OrderBookManager {
             // Parse the JSON response body
             JsonObject jsonObject = parser.parse(responseBody).getAsJsonObject();
 
-            // Extract the lastUpdateId
-            long lastUpdateId = jsonObject.get("lastUpdateId").getAsLong();
-            snapshot.setLastUpdateId(lastUpdateId);
-
             // Extract the bids and asks arrays
             JsonArray bidsArray = jsonObject.getAsJsonArray("bids");
             JsonArray asksArray = jsonObject.getAsJsonArray("asks");
