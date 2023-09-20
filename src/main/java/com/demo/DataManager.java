@@ -56,8 +56,14 @@ public class DataManager {
                     }
                 }
 
-                weightedAveragePriceTrue = weightedSumPriceTrue / sumQuantityTrue; // Calculate weighted average for true
-                weightedAveragePriceFalse = weightedSumPriceFalse / sumQuantityFalse; // Calculate weighted average for false
+                if (sumQuantityTrue != 0)
+                    weightedAveragePriceTrue = weightedSumPriceTrue / sumQuantityTrue;
+                else
+                    weightedAveragePriceTrue = 0;
+                if (sumQuantityFalse != 0)
+                    weightedAveragePriceFalse = weightedSumPriceFalse / sumQuantityFalse;
+                else
+                    weightedAveragePriceFalse = 0;
             }
             if (orderBookSnapshot != null) {
                 List<OrderBookEvent.PriceQuantityPair> bids = orderBookSnapshot.getBids();
