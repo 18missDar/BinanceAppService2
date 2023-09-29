@@ -29,8 +29,12 @@ public class DataManager {
                               String requestForBook,
                               String eventSymbol){
         OrderBookSnapshot orderBookSnapshot = null;
+        //request /startQuequeForBook parameters: startTime, endTime, intervalMinutes, eventSymbol, name_queque(id service_ event symbol)
+        // стартовать процесс с локальной переменной и писать в очередь каждый startTime+intervalMinutes
         while (startTime < endTime) {
             String request = requestForBook + "?currentTime=" + startTime + "&eventSymbol=" + eventSymbol;
+            //request /getOrderTemporaryBook parameters: name_queque
+            //вытаскивать по одному событию из очереди
             orderBookSnapshot = orderBookManager.getSnapshot(request);
 
             double sumQuantityTrue = 0;
@@ -112,7 +116,17 @@ public class DataManager {
             currentValue += stepForBids;
         }
 
-        return result;
+        List<Double> result2 = new ArrayList<>();
+
+        for  (int i = 0; i < result.size(); i++) {
+            for (OrderBookEvent.PriceQuantityPair bid : bids) {
+                if (Double.parseDouble(bid.getPrice()) >= maxBids && Double.parseDouble(bid.getPrice()) < result.get(i))
+                    result.add(Double.parseDouble(bid.getQuantity()));
+            }
+            maxBids = result.get(i);
+        }
+
+        return result2;
     }
 
 
@@ -137,7 +151,17 @@ public class DataManager {
             currentValue += stepForAsks;
         }
 
-        return result;
+        List<Double> result2 = new ArrayList<>();
+
+        for  (int i = 0; i < result.size(); i++) {
+            for (OrderBookEvent.PriceQuantityPair ask : asks) {
+                if (Double.parseDouble(ask.getPrice()) >= minAsks && Double.parseDouble(ask.getPrice()) < result.get(i))
+                    result.add(Double.parseDouble(ask.getQuantity()));
+            }
+            minAsks = result.get(i);
+        }
+
+        return result2;
     }
 
 }
