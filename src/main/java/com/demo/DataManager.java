@@ -27,14 +27,19 @@ public class DataManager {
                               OrderBookManager orderBookManager,
                               TradeEventManager tradeEventManager,
                               String requestForBook,
-                              String eventSymbol){
+                              String eventSymbol,
+                            String idService){
         OrderBookSnapshot orderBookSnapshot = null;
-        //request /startQuequeForBook parameters: startTime, endTime, intervalMinutes, eventSymbol, name_queque(id service_ event symbol)
-        // стартовать процесс с локальной переменной и писать в очередь каждый startTime+intervalMinutes
+        String name_queueForWriting = idService + "_" + eventSymbol;
+        String requestForInitiating = requestForBook + "/startQueueForBook?startTime=" + startTime
+                + "&endTime=" + endTime
+                + "&intervalMinutes=" + intervalMinutes
+                + "&eventSymbol=" + eventSymbol
+                + "&name_queue=" + name_queueForWriting;
+        orderBookManager.initiateProcess(requestForInitiating);
         while (startTime < endTime) {
-            String request = requestForBook + "?currentTime=" + startTime + "&eventSymbol=" + eventSymbol;
-            //request /getOrderTemporaryBook parameters: name_queque
-            //вытаскивать по одному событию из очереди
+            String request = requestForBook + "/getOrderTemporaryBook?name_queue=" + name_queueForWriting;
+
             orderBookSnapshot = orderBookManager.getSnapshot(request);
 
             double sumQuantityTrue = 0;
@@ -111,22 +116,40 @@ public class DataManager {
 
         // Generate the list with values
         double currentValue = maxBids;
+        result.add(maxBids);
         for (int i = 0; i < numberOfBookParts; i++) {
-            result.add(currentValue);
             currentValue += stepForBids;
+            result.add(currentValue);
         }
 
-        List<Double> result2 = new ArrayList<>();
 
-        for  (int i = 0; i < result.size(); i++) {
-            for (OrderBookEvent.PriceQuantityPair bid : bids) {
-                if (Double.parseDouble(bid.getPrice()) >= maxBids && Double.parseDouble(bid.getPrice()) < result.get(i))
-                    result.add(Double.parseDouble(bid.getQuantity()));
+        return findQuantitiesInPriceIntervals(bids,result);
+    }
+
+
+    public static List<Double> findQuantitiesInPriceIntervals(
+            List<OrderBookEvent.PriceQuantityPair> asks,
+            List<Double> priceIntervals) {
+        List<Double> quantitiesInIntervals = new ArrayList<>();
+
+        for (int i = 0; i < priceIntervals.size() - 1; i++) {
+            double startPrice = priceIntervals.get(i);
+            double endPrice = priceIntervals.get(i + 1);
+            double quantityInInterval = 0.0;
+
+            for (OrderBookEvent.PriceQuantityPair ask : asks) {
+                double askPrice = Double.parseDouble(ask.getPrice());
+
+                // Check if the ask price is within the current interval
+                if (askPrice >= startPrice && askPrice < endPrice) {
+                    quantityInInterval += Double.parseDouble(ask.getQuantity());
+                }
             }
-            maxBids = result.get(i);
+
+            quantitiesInIntervals.add(quantityInInterval);
         }
 
-        return result2;
+        return quantitiesInIntervals;
     }
 
 
@@ -146,22 +169,13 @@ public class DataManager {
 
         // Generate the list with values
         double currentValue = minimumOfAsks;
+        result.add(minimumOfAsks);
         for (int i = 0; i < numberOfBookParts; i++) {
-            result.add(currentValue);
             currentValue += stepForAsks;
+            result.add(currentValue);
         }
 
-        List<Double> result2 = new ArrayList<>();
-
-        for  (int i = 0; i < result.size(); i++) {
-            for (OrderBookEvent.PriceQuantityPair ask : asks) {
-                if (Double.parseDouble(ask.getPrice()) >= minAsks && Double.parseDouble(ask.getPrice()) < result.get(i))
-                    result.add(Double.parseDouble(ask.getQuantity()));
-            }
-            minAsks = result.get(i);
-        }
-
-        return result2;
+        return findQuantitiesInPriceIntervals(asks, result);
     }
 
 }

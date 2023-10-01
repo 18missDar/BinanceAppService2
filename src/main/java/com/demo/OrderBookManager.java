@@ -42,9 +42,9 @@ public class OrderBookManager {
             // Populate the bids list
             List<OrderBookEvent.PriceQuantityPair> bids = new ArrayList<>();
             for (JsonElement bidElement : bidsArray) {
-                JsonArray bidArray = bidElement.getAsJsonArray();
-                String price = bidArray.get(0).getAsString();
-                String quantity = bidArray.get(1).getAsString();
+                JsonObject bidObject = bidElement.getAsJsonObject();
+                String price = bidObject.get("price").getAsString();
+                String quantity = bidObject.get("quantity").getAsString();
                 OrderBookEvent.PriceQuantityPair bid = new OrderBookEvent.PriceQuantityPair(price, quantity);
                 bids.add(bid);
             }
@@ -54,9 +54,9 @@ public class OrderBookManager {
             // Populate the asks list
             List<OrderBookEvent.PriceQuantityPair> asks = new ArrayList<>();
             for (JsonElement askElement : asksArray) {
-                JsonArray askArray = askElement.getAsJsonArray();
-                String price = askArray.get(0).getAsString();
-                String quantity = askArray.get(1).getAsString();
+                JsonObject askObject = askElement.getAsJsonObject();
+                String price = askObject.get("price").getAsString();
+                String quantity = askObject.get("quantity").getAsString();
                 OrderBookEvent.PriceQuantityPair ask = new OrderBookEvent.PriceQuantityPair(price, quantity);
                 asks.add(ask);
             }
@@ -67,6 +67,20 @@ public class OrderBookManager {
         }
 
         return snapshot;
+    }
+
+
+    public void initiateProcess(String request){
+        HttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(request);
+
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle exception
+        }
+
     }
 
     public OrderBookSnapshot getSnapshot(String request){

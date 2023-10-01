@@ -35,13 +35,15 @@ public class StartController {
         databaseConfig.setDbUrl(serviceDescriptor.getDatasource_url());
         databaseConfig.setDbUsername(serviceDescriptor.getDatasource_username());
         databaseConfig.setDbPassword(serviceDescriptor.getDatasource_password());
-        String requestForBook = "http://" + serviceDescriptor.getHost() + ":" + serviceDescriptor.getPort() + "/getOrderBook";
+        String requestForBook = "http://" + serviceDescriptor.getHost() + ":" + serviceDescriptor.getPort();
         OrderBookManager orderBookManager = new OrderBookManager();
         TradeEventManager tradeEventManager = new TradeEventManager();
         tradeEventManager.startTradeEventManager(databaseConfig, appConfig);
         try {
             DataManager dataManager = new DataManager(messageSenderService);
-            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy, maxPriceOrderBuy, intervalMinutes, name_queue, orderBookManager, tradeEventManager, requestForBook, eventSymbol);
+            dataManager.prepareData(startTime, endTime, numberOfBookParts, minPriceOrderBuy,
+                    maxPriceOrderBuy, intervalMinutes, name_queue, orderBookManager,
+                    tradeEventManager, requestForBook, eventSymbol, idService);
             return "All starts successfully";
         }
         catch (Exception e){
