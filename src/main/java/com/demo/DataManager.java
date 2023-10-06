@@ -103,6 +103,8 @@ public class DataManager {
     public static List<Double> getBidsInterval(List<OrderBookEvent.PriceQuantityPair> bids, double maxPriceOrderBuy, int numberOfBookParts) {
         List<Double> result = new ArrayList<>();
 
+        System.out.println(bids);
+
         // Convert price strings to doubles and find maximum bid price
         List<Double> bidPrices = new ArrayList<>();
         for (OrderBookEvent.PriceQuantityPair bid : bids) {
@@ -122,8 +124,8 @@ public class DataManager {
             result.add(currentValue);
         }
 
-
-        return findQuantitiesInPriceIntervals(bids,result);
+        Collections.sort(result, Collections.reverseOrder());
+        return findQuantitiesInPriceIntervalsBids(bids,result);
     }
 
 
@@ -142,6 +144,32 @@ public class DataManager {
 
                 // Check if the ask price is within the current interval
                 if (askPrice >= startPrice && askPrice < endPrice) {
+                    quantityInInterval += Double.parseDouble(ask.getQuantity());
+                }
+            }
+
+            quantitiesInIntervals.add(quantityInInterval);
+        }
+
+        return quantitiesInIntervals;
+    }
+
+
+    public static List<Double> findQuantitiesInPriceIntervalsBids(
+            List<OrderBookEvent.PriceQuantityPair> bids,
+            List<Double> priceIntervals) {
+        List<Double> quantitiesInIntervals = new ArrayList<>();
+
+        for (int i = 0; i < priceIntervals.size() - 1; i++) {
+            double startPrice = priceIntervals.get(i);
+            double endPrice = priceIntervals.get(i + 1);
+            double quantityInInterval = 0.0;
+
+            for (OrderBookEvent.PriceQuantityPair ask : bids) {
+                double askPrice = Double.parseDouble(ask.getPrice());
+
+                // Check if the ask price is within the current interval
+                if (askPrice <= startPrice && askPrice > endPrice) {
                     quantityInInterval += Double.parseDouble(ask.getQuantity());
                 }
             }
